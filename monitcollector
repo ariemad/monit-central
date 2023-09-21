@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Get the directory of the Bash script
+script_dir="$(dirname "$0")"
+
+# Run the script on this folder with the same args
+$script_dir/monitCollector.js "$@"
