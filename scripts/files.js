@@ -19,6 +19,19 @@ const verifyPaths = () => {
   }
 };
 
+const getConfig = () => {
+  let raw = fs.readFileSync(vars.defaultFiles.config.path);
+  let data = JSON.parse(raw);
+  return data;
+};
+
+const saveConfig = (config) => {
+  fs.writeFileSync(
+    vars.defaultFiles.config.path,
+    JSON.stringify(config, null, 2)
+  );
+};
+
 const add = (args) => {
   if (args.length == 0) {
     message('"add" has no arguments.', { all: true });
@@ -26,13 +39,10 @@ const add = (args) => {
 
   let dict = argsAux.process(args);
   if (argsAux.check(dict, ["t", "ip", "u", "path"])) {
-    let raw = fs.readFileSync(vars.defaultFiles.config.path);
-    let data = JSON.parse(raw);
-    data.hosts.push(dict);
-    fs.writeFileSync(
-      vars.defaultFiles.config.path,
-      JSON.stringify(data, null, 2)
-    );
+    let config = getConfig();
+    config.hosts.push(dict);
+    saveConfig(config);
+
     message("Host successfully add.", { all: true });
   } else {
     message('"add" arguments are not valid.', { all: true });
@@ -40,24 +50,18 @@ const add = (args) => {
 };
 
 const clear = () => {
-  let raw = fs.readFileSync(vars.defaultFiles.config.path);
-  let data = JSON.parse(raw);
-
-  data.hosts = [];
-
-  fs.writeFileSync(
-    vars.defaultFiles.config.path,
-    JSON.stringify(data, null, 2)
-  );
+  let config = getConfig();
+  config.hosts = [];
+  saveConfig(config);
 
   message("All hosts removed", { all: true });
 };
 
 const list = () => {
-  let raw = fs.readFileSync(vars.defaultFiles.config.path);
-  let data = JSON.parse(raw);
+  let config = getConfig();
+
   message("", { introMessage: true });
-  console.table(data.hosts);
+  console.table(config.hosts);
   message("", { exitMessage: true, exitProcess: true });
 };
 
