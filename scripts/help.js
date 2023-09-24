@@ -1,5 +1,5 @@
 const { message } = require("./message");
-const { vars } = require("./variables");
+const { vars } = require("./vars");
 
 const help = () => {
   let string = `Commands:

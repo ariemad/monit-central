@@ -4,8 +4,8 @@
   "description": "A tool to centralize monit hosts",
   "main": "monitCollector.js",
   "dependencies": {
+    "ssh2": "^1.14.0"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

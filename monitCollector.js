@@ -4,6 +4,7 @@ const path = require("path");
 const { files } = require("./scripts/files");
 const { help } = require("./scripts/help");
 const { message } = require("./scripts/message");
+const { start } = require("./scripts/status");
 
 global.scriptPath = path.dirname(process.argv[1]);
 let args = process.argv.slice(2);
@@ -13,6 +14,7 @@ const functions = {
   add: files.add,
   clear: files.clear,
   list: files.list,
+  start: start,
 };
 
 files.verifyPaths();

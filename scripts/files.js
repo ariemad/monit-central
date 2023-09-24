@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { vars } = require("./variables");
+const { vars } = require("./vars");
 const { message } = require("./message");
 const { argsAux } = require("./argsAux");
 
@@ -66,6 +66,8 @@ const list = () => {
 };
 
 const files = {
+  getConfig,
+  saveConfig,
   verifyPaths,
   add,
   clear,
