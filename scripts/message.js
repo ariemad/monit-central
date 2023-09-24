@@ -6,14 +6,13 @@ const messageIntro = () => {
   console.log("Monit Collector:");
 };
 
-const message = (message, options = {}) => {
-  const defaultOptions = {
-    introMessage: false,
-    exitMessage: false,
-    exitProcess: false,
-    all: false,
-  };
-
+const defaultOptions = {
+  introMessage: false,
+  exitMessage: false,
+  exitProcess: false,
+  all: false,
+};
+const message = (message, options = defaultOptions) => {
   //All overrides all options
   options = { ...defaultOptions, ...options };
   if (options.all) {
@@ -23,11 +22,10 @@ const message = (message, options = {}) => {
   }
 
   options.introMessage && messageIntro();
-  console.log();
-  console.log(message);
-  console.log();
+  options.introMessage && console.log();
+  message && console.log(message);
+  options.exitMessage && console.log();
   options.exitMessage && messageExit();
-  console.log();
 
   options.exitProcess && process.exit();
 };

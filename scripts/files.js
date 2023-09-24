@@ -1,73 +1,68 @@
 const fs = require("fs");
 const path = require("path");
-const { paths } = require("./variables");
+const { vars } = require("./variables");
 const { message } = require("./message");
+const { argsAux } = require("./argsAux");
 
-const verify = () => {
-  for (const filePath of paths.fileStructure) {
-    let dirPath = path.dirname(filePath);
+const verifyPaths = () => {
+  for (const name in vars.defaultFiles) {
+    let defaultFile = vars.defaultFiles[name];
+    let dirPath = path.dirname(defaultFile.path);
 
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, { recursive: true });
     }
 
-    if (!fs.existsSync(filePath)) {
-      fs.writeFileSync(filePath, "");
+    if (!fs.existsSync(defaultFile.path)) {
+      fs.writeFileSync(defaultFile.path, defaultFile.content);
     }
   }
 };
 
 const add = (args) => {
   if (args.length == 0) {
-    throw new Error(`'add' must have one of the following arguments`);
+    message('"add" has no arguments.', { all: true });
   }
 
-  if (!paths.addFiles.includes(args[0])) {
-    let string = `'${args}' is not a proper 'add' argument.
-Consider using one of the following: ${paths.addFiles.join(", ")}
-    `;
-    message(string, { all: true });
+  let dict = argsAux.process(args);
+  if (argsAux.check(dict, ["t", "ip", "u", "path"])) {
+    let raw = fs.readFileSync(vars.defaultFiles.config.path);
+    let data = JSON.parse(raw);
+    data.hosts.push(dict);
+    fs.writeFileSync(
+      vars.defaultFiles.config.path,
+      JSON.stringify(data, null, 2)
+    );
+    message("Host successfully add.", { all: true });
+  } else {
+    message('"add" arguments are not valid.', { all: true });
   }
-
-  fs.appendFileSync(
-    path.join(global.scriptPath, `./data/${args[0]}.txt`),
-    args.slice(1).join("\n") + "\n"
-  );
 };
 
-const clear = (args) => {
-  if (!paths.addFiles.includes(args[0])) {
-    let message = `'${args}' is not a proper 'clear' argument.
-Consider using one of the following: ${data.addFiles.join(", ")}
-    `;
-    messageAndExit(message);
-  }
+const clear = () => {
+  let raw = fs.readFileSync(vars.defaultFiles.config.path);
+  let data = JSON.parse(raw);
 
-  fs.writeFileSync(path.join(global.scriptPath, `./data/${args[0]}.txt`), "");
-};
+  data.hosts = [];
 
-const list = (args) => {
-  if (!paths.addFiles.includes(args[0])) {
-    let message = `'${args}' is not a proper 'list' argument.
-Consider using one of the following: ${paths.addFiles.join(", ")}
-    `;
-    messageAndExit(message);
-  }
-
-  let data = fs.readFileSync(
-    path.join(global.scriptPath, `./data/${args[0]}.txt`),
-    { encoding: "utf8" }
+  fs.writeFileSync(
+    vars.defaultFiles.config.path,
+    JSON.stringify(data, null, 2)
   );
 
-  if (data == "") {
-    message("There are no hosts defined", { all: true });
-  }
+  message("All hosts removed", { all: true });
+};
 
-  console.log(data);
+const list = () => {
+  let raw = fs.readFileSync(vars.defaultFiles.config.path);
+  let data = JSON.parse(raw);
+  message("", { introMessage: true });
+  console.table(data.hosts);
+  message("", { exitMessage: true, exitProcess: true });
 };
 
 const files = {
-  verify,
+  verifyPaths,
   add,
   clear,
   list,

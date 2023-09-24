@@ -11,11 +11,11 @@ let args = process.argv.slice(2);
 const functions = {
   help: help,
   add: files.add,
-  clean: files.clear,
+  clear: files.clear,
   list: files.list,
 };
 
-files.verify();
+files.verifyPaths();
 
 if (args.length > 0 && functions.hasOwnProperty(args[0])) {
   functions[args[0]](args.slice(1));

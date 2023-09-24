@@ -1,10 +1,15 @@
-const fileStructure = ["data/ssh.txt"];
-
-const addFiles = ["ssh"];
-
-const paths = {
-  fileStructure,
-  addFiles,
+const defaultFiles = {
+  config: {
+    path: "config/monitCollector.json",
+    content: JSON.stringify({ hosts: [] }, null, 2),
+  },
 };
 
-module.exports = { paths };
+const hostConnTypes = ["ssh"];
+
+const vars = {
+  hostConnTypes,
+  defaultFiles,
+};
+
+module.exports = { vars };
