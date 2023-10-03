@@ -1,3 +1,5 @@
+const path = require("path");
+
 const configDefault = {
   hosts: [],
   delay: 5,
@@ -7,7 +9,7 @@ const configDefault = {
 
 const defaultFiles = {
   config: {
-    path: "config/monitCollector.json",
+    path: path.join(global.scriptPath, "config/monitCollector.json"),
     content: JSON.stringify(configDefault, null, 2),
   },
 };
