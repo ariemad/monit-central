@@ -2,21 +2,19 @@ const { Client } = require("ssh2");
 const { files } = require("./files");
 const { time } = require("./time");
 const fs = require("fs");
-const { log } = require("console");
+const chalk = require("chalk");
+const { message } = require("./message");
 
 class Status {
   constructor() {
-    this.ok = false;
+    this.status = false;
     this.config = files.getConfig();
     this.numberHosts = this.config.hosts.length;
     this.raw = new Array(this.numberHosts).fill(null);
-    this.processed = Array.from(new Array(this.numberHosts), () => {
-      return { status: false, services: [] };
-    });
+    this.processed = Array.from(new Array(this.numberHosts));
   }
 
   start = async () => {
-    console.log("Hey");
     await time.wait(this.config.delay * 1000);
     this.getProcessReport();
     setInterval(this.getProcessReport, this.config.interval * 1000);
@@ -25,6 +23,7 @@ class Status {
   getProcessReport = async () => {
     await this.getAll();
     this.processAll();
+    this.updateStatus();
     this.reportAll();
   };
 
@@ -41,10 +40,9 @@ class Status {
   get = (hostIndex) => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        this.status[hostIndex] = { ok: false };
-
         reject();
       }, this.config.response * 1000);
+
       if (this.config.hosts[hostIndex].t == "ssh") {
         this.getSSH(hostIndex).then(resolve);
       }
@@ -96,6 +94,8 @@ class Status {
   };
 
   processSSH = (hostIndex) => {
+    this.processed[hostIndex] = { status: false, services: [] };
+
     let temp = this.raw[hostIndex].toString().split("\n\n");
     temp[0] = temp[0].split(" ");
     this.processed[hostIndex].version = temp[0][1];
@@ -116,11 +116,61 @@ class Status {
 
       this.processed[hostIndex].services.push(service);
     }
-    console.log(this.processed);
+  };
+
+  updateStatus = () => {
+    for (let i = 0; i < this.numberHosts; i++) {
+      if (!this.processed[i]) this.status[i] = false;
+      if (this.processed[i].services.length == 0) this.status[i] = false;
+
+      this.processed[i].status = this.processed[i].services.every(
+        (service) => service.status == "OK"
+      );
+    }
+
+    this.status = this.processed.every((service) => service.status);
   };
 
   reportAll = () => {
-    console.log("Report");
+    let table = [];
+    for (let hostIndex = 0; hostIndex < this.numberHosts; hostIndex++) {
+      for (
+        let serviceIndex = 0;
+        serviceIndex < this.processed[hostIndex].services.length;
+        serviceIndex++
+      ) {
+        if (this.processed[hostIndex].services[serviceIndex].status == "OK") {
+          table.push({
+            Host: hostIndex,
+            "Service Type":
+              this.processed[hostIndex].services[serviceIndex].type,
+            "Service Name":
+              this.processed[hostIndex].services[serviceIndex].name,
+            Status: this.processed[hostIndex].services[serviceIndex].status,
+          });
+        } else {
+          table.push({
+            Host: hostIndex,
+            "Service Type":
+              this.processed[hostIndex].services[serviceIndex].type,
+            "Service Name":
+              this.processed[hostIndex].services[serviceIndex].name,
+            Status: this.processed[hostIndex].services[serviceIndex].status,
+          });
+        }
+      }
+    }
+
+    let overallMessage;
+    if (this.status) {
+      overallMessage = "Overall Status: " + chalk.green("OK");
+    } else {
+      overallMessage = "Overall Status: " + chalk.red("NOK");
+    }
+
+    message("", { introMessage: true });
+    console.log(overallMessage);
+    console.table(table);
   };
 }
 

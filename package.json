@@ -4,6 +4,7 @@
   "description": "A tool to centralize monit hosts",
   "main": "monitCollector.js",
   "dependencies": {
+    "chalk": "^4.1.2",
     "ssh2": "^1.14.0"
   },
   "scripts": {
