@@ -2,10 +2,6 @@ const { Client } = require("ssh2");
 const { files } = require("./files");
 const { time } = require("./time");
 const fs = require("fs");
-const chalk = require("chalk");
-const { message } = require("./message");
-const { table } = require("console");
-const CliTable3 = require("cli-table3");
 const { reportCLI } = require("./reports");
 
 class Status {
@@ -27,7 +23,14 @@ class Status {
     await this.getAll();
     this.processAll();
     this.updateStatus();
-    reportCLI();
+    reportCLI(
+      this.status,
+      this.processed.map((host) =>
+        host?.services.map((service) => {
+          return { name: service.name, type: service.type };
+        })
+      )
+    );
   };
 
   getAll = () => {

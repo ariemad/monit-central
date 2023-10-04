@@ -1,33 +1,64 @@
-const reportCLI = () => {
-  for (let hostIndex = 0; hostIndex < this.numberHosts; hostIndex++) {
-    let table = new CliTable3({
-      head: ["Host", "Service Type", "Service Name", "Status"],
-    });
-    if (!this.processed[hostIndex]) continue;
-    for (
-      let serviceIndex = 0;
-      serviceIndex < this.processed[hostIndex].services.length;
-      serviceIndex++
-    ) {
-      table.push([
-        this.processed[hostIndex].services[serviceIndex].type,
-        this.processed[hostIndex].services[serviceIndex].name,
-        this.processed[hostIndex].services[serviceIndex].status,
-      ]);
-    }
-    console.log(table.toString());
-  }
+const chalk = require("chalk");
+const { message } = require("./message");
+const CliTable3 = require("cli-table3");
 
-  let overallMessage;
-  if (this.status) {
-    overallMessage = "Overall Status: " + chalk.green("OK");
-  } else {
-    overallMessage = "Overall Status: " + chalk.red("NOK");
-  }
-
+const reportCLI = (status, processed) => {
   message("", { introMessage: true });
-  console.log(overallMessage);
-  console.table(table);
+  reportOverall(status.overall);
+  reportHosts(status.hosts);
+  reportServices(status.services, processed);
+};
+
+const reportOverall = (overallStatus) => {
+  const table = new CliTable3({
+    head: ["Overall\nStatus"],
+    style: {},
+  });
+  table.push([
+    overallStatus ? chalk.bgGreenBright("      ") : chalk.bgRedBright("      "),
+  ]);
+  console.log(table.toString());
+  console.log();
+};
+
+const reportHosts = (hostStatus) => {
+  const table = new CliTable3({
+    head: ["Status", "Host"],
+    style: {},
+  });
+  hostStatus.map((host, index) =>
+    table.push([
+      host ? chalk.bgGreenBright("      ") : chalk.bgRedBright("      "),
+      `Host ${index + 1}`,
+    ])
+  );
+  console.log(table.toString());
+  console.log();
+};
+
+const reportServices = (serviceStatus, serviceDetails) => {
+  for (let hostIndex = 0; hostIndex < serviceStatus.length; hostIndex++) {
+    if (serviceStatus[hostIndex].length == 0) continue;
+    const table = new CliTable3({
+      head: [],
+      style: {},
+    });
+    table.push([{ colSpan: 3, content: chalk.blue(`Host ${hostIndex + 1}`) }]);
+    table.push([
+      chalk.red("Status"),
+      chalk.red("Service Name"),
+      chalk.red("Service Type"),
+    ]);
+    serviceStatus[hostIndex].map((status, index) =>
+      table.push([
+        status ? chalk.bgGreenBright("      ") : chalk.bgRedBright("      "),
+        serviceDetails[hostIndex][index].name,
+        serviceDetails[hostIndex][index].type,
+      ])
+    );
+    console.log(table.toString());
+    console.log();
+  }
 };
 
 module.exports = { reportCLI };
