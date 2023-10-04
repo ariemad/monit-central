@@ -44,7 +44,9 @@ class Status {
       }, this.config.response * 1000);
 
       if (this.config.hosts[hostIndex].t == "ssh") {
-        this.getSSH(hostIndex).then(resolve);
+        this.getSSH(hostIndex)
+          .then(resolve)
+          .catch(() => resolve());
       }
     });
   };
@@ -53,10 +55,20 @@ class Status {
     return new Promise((resolve, reject) => {
       const conn = new Client();
       let accBuffer = Buffer.alloc(0);
+
+      // Handle errors that occur during the connection setup
+      conn.on("error", (err) => {
+        reject(err); // Reject the promise with the error
+      });
+
       conn
         .on("ready", () => {
           conn.exec("sudo monit status", (err, stream) => {
-            if (err) throw err;
+            if (err) {
+              conn.end();
+              reject(err); // Reject the promise with the error
+              return;
+            }
             stream
               .on("close", (code, signal) => {
                 conn.end();
@@ -81,9 +93,10 @@ class Status {
   processAll = () => {
     for (let hostIndex = 0; hostIndex < this.numberHosts; hostIndex++) {
       if (this.raw[hostIndex] == null) {
-        this.processed[hostIndex].status = {};
+        this.processed[hostIndex] = null;
+      } else {
+        this.process(hostIndex);
       }
-      this.process(hostIndex);
     }
   };
 
@@ -120,7 +133,7 @@ class Status {
 
   updateStatus = () => {
     for (let i = 0; i < this.numberHosts; i++) {
-      if (!this.processed[i]) this.status[i] = false;
+      if (!this.processed[i]) continue;
       if (this.processed[i].services.length == 0) this.status[i] = false;
 
       this.processed[i].status = this.processed[i].services.every(
@@ -128,12 +141,15 @@ class Status {
       );
     }
 
-    this.status = this.processed.every((service) => service.status);
+    this.status = this.processed.every((service) =>
+      service ? service.status : false
+    );
   };
 
   reportAll = () => {
     let table = [];
     for (let hostIndex = 0; hostIndex < this.numberHosts; hostIndex++) {
+      if (!this.processed[hostIndex]) continue;
       for (
         let serviceIndex = 0;
         serviceIndex < this.processed[hostIndex].services.length;
