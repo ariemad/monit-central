@@ -4,10 +4,13 @@ const { time } = require("./time");
 const fs = require("fs");
 const chalk = require("chalk");
 const { message } = require("./message");
+const { table } = require("console");
+const CliTable3 = require("cli-table3");
+const { reportCLI } = require("./reports");
 
 class Status {
   constructor() {
-    this.status = false;
+    this.status = {};
     this.config = files.getConfig();
     this.numberHosts = this.config.hosts.length;
     this.raw = new Array(this.numberHosts).fill(null);
@@ -24,7 +27,7 @@ class Status {
     await this.getAll();
     this.processAll();
     this.updateStatus();
-    this.reportAll();
+    reportCLI();
   };
 
   getAll = () => {
@@ -107,7 +110,7 @@ class Status {
   };
 
   processSSH = (hostIndex) => {
-    this.processed[hostIndex] = { status: false, services: [] };
+    this.processed[hostIndex] = { services: [] };
 
     let temp = this.raw[hostIndex].toString().split("\n\n");
     temp[0] = temp[0].split(" ");
@@ -132,61 +135,43 @@ class Status {
   };
 
   updateStatus = () => {
-    for (let i = 0; i < this.numberHosts; i++) {
-      if (!this.processed[i]) continue;
-      if (this.processed[i].services.length == 0) this.status[i] = false;
-
-      this.processed[i].status = this.processed[i].services.every(
-        (service) => service.status == "OK"
-      );
-    }
-
-    this.status = this.processed.every((service) =>
-      service ? service.status : false
-    );
+    this.buildStatus();
+    this.getStatus();
   };
 
-  reportAll = () => {
-    let table = [];
+  buildStatus = () => {
+    this.status.overall = false;
+    this.status.hosts = new Array(this.numberHosts).fill(false);
+    this.status.services = new Array(this.numberHosts);
+    this.processed.map((process, index) => {
+      if (!process) this.status.services[index] = [];
+      else {
+        this.status.services[index] = new Array(process.services.length).fill(
+          false
+        );
+      }
+    });
+  };
+
+  getStatus = () => {
     for (let hostIndex = 0; hostIndex < this.numberHosts; hostIndex++) {
-      if (!this.processed[hostIndex]) continue;
-      for (
-        let serviceIndex = 0;
-        serviceIndex < this.processed[hostIndex].services.length;
-        serviceIndex++
-      ) {
-        if (this.processed[hostIndex].services[serviceIndex].status == "OK") {
-          table.push({
-            Host: hostIndex,
-            "Service Type":
-              this.processed[hostIndex].services[serviceIndex].type,
-            "Service Name":
-              this.processed[hostIndex].services[serviceIndex].name,
-            Status: this.processed[hostIndex].services[serviceIndex].status,
-          });
-        } else {
-          table.push({
-            Host: hostIndex,
-            "Service Type":
-              this.processed[hostIndex].services[serviceIndex].type,
-            "Service Name":
-              this.processed[hostIndex].services[serviceIndex].name,
-            Status: this.processed[hostIndex].services[serviceIndex].status,
-          });
-        }
+      if (!this.processed[hostIndex]) this.status.hosts[hostIndex] = false;
+      else if (this.processed[hostIndex].services.length == 0) {
+        this.status[hostIndex].status = false;
+      } else {
+        this.processed[hostIndex].services.map(
+          (service, serviceIndex) =>
+            (this.status.services[hostIndex][serviceIndex] =
+              service.status == "OK")
+        );
+
+        this.status.hosts[hostIndex] = this.status.services[hostIndex].every(
+          (status) => status
+        );
       }
     }
 
-    let overallMessage;
-    if (this.status) {
-      overallMessage = "Overall Status: " + chalk.green("OK");
-    } else {
-      overallMessage = "Overall Status: " + chalk.red("NOK");
-    }
-
-    message("", { introMessage: true });
-    console.log(overallMessage);
-    console.table(table);
+    this.status.overall = this.status.hosts.every((host) => host);
   };
 }
 
