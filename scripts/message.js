@@ -1,9 +1,9 @@
 const messageExit = () => {
-  console.log("Monit Collector will exit.");
+  console.log("Monit Central will exit.");
 };
 
 const messageIntro = () => {
-  console.log("Monit Collector:");
+  console.log("Monit Central:");
 };
 
 const defaultOptions = {

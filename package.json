@@ -1,8 +1,8 @@
 {
-  "name": "monit-collector",
+  "name": "monit-central",
   "version": "1.0.0",
   "description": "A tool to centralize monit hosts",
-  "main": "monitCollector.js",
+  "main": "monitCentral.js",
   "dependencies": {
     "chalk": "^4.1.2",
     "cli-table3": "^0.6.3",
@@ -11,14 +11,17 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": {
+    "monitcentral": "./monitCentral.js"
+  }, 
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ariemad/monit-collector.git"
+    "url": "git+https://github.com/ariemad/monit-central.git"
   },
   "author": "Daniel Bray",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ariemad/monit-collector/issues"
+    "url": "https://github.com/ariemad/monit-central/issues"
   },
-  "homepage": "https://github.com/ariemad/monit-collector#readme"
+  "homepage": "https://github.com/ariemad/monit-central#readme"
 }
