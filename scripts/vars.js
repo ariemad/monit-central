@@ -9,7 +9,7 @@ const configDefault = {
 
 const defaultFiles = {
   config: {
-    path: path.join(global.scriptPath, "config/monitCentral.json"),
+    path: "./config/monitCentral.json",
     content: JSON.stringify(configDefault, null, 2),
   },
 };
