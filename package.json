@@ -1,6 +1,6 @@
 {
   "name": "monit-central",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A CLI tool to centralize monitoring of multiple monit hosts.",
   "main": "monitCentral.js",
   "dependencies": {
